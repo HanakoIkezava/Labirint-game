@@ -24,8 +24,6 @@ public class MazeGenerator
             {
                 maze[x, y] = new MazeGeneratorCell { X = x, Y = y };
             }
-
-
         }
 
         RemoveWallsWithBactracker(maze);
@@ -73,7 +71,7 @@ public class MazeGenerator
         }
         else 
         { 
-            if (a.X < b.X) a.WallLeft = false;
+            if (a.X > b.X) a.WallLeft = false;
             else b.WallLeft = false;
         }
     }
