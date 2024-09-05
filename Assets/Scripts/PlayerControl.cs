@@ -15,6 +15,6 @@ public class PlayerControl : MonoBehaviour
     {
         moveVector.x = Input.GetAxis("Horizontal");
         moveVector.y = Input.GetAxis("Vertical");
-        rb.MovePosition(rb.position +moveVector*speed*Time.deltaTime);
+        rb.MovePosition(rb.position + moveVector*speed*Time.deltaTime);
     }
 }
