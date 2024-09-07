@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class MazeGeneratorCell
     public bool WallBottom = true;
 
     public bool Visited = false;
+    public int DistanceFromStart;
 }
 public class MazeGenerator
 {
@@ -38,12 +40,16 @@ public class MazeGenerator
 
         RemoveWallsWithBactracker(maze);
 
+        PlaceMazeExit(maze);
+
         return maze;
     }
+
     private void RemoveWallsWithBactracker(MazeGeneratorCell[,] maze)
     {
         MazeGeneratorCell current = maze[0, 0];
         current.Visited = true;
+        current.DistanceFromStart = 0;
 
         Stack<MazeGeneratorCell> stack = new Stack<MazeGeneratorCell>();
         do
@@ -65,6 +71,7 @@ public class MazeGenerator
                 chosen.Visited = true;
                 stack.Push(chosen);
                 current = chosen;
+                chosen.DistanceFromStart=stack.Count;
             }
             else
             {
@@ -84,5 +91,25 @@ public class MazeGenerator
             if (a.X > b.X) a.WallLeft = false;
             else b.WallLeft = false;
         }
+    }
+    private void PlaceMazeExit(MazeGeneratorCell[,] maze)
+    {
+        MazeGeneratorCell furthest= maze[0,0];
+        for (int x = 0; x < maze.GetLength(0); x++)
+        {
+            if (maze[x, Height - 2].DistanceFromStart > furthest.DistanceFromStart) furthest = maze[x, Height - 2];
+            if (maze[x, 0].DistanceFromStart > furthest.DistanceFromStart) furthest = maze[x, 0];
+        }
+
+        for (int y = 0; y < maze.GetLength(1); y++)
+        {
+            if (maze[Width - 2, y].DistanceFromStart > furthest.DistanceFromStart) furthest = maze[Width - 2, y];
+            if (maze[0, y].DistanceFromStart > furthest.DistanceFromStart) furthest = maze[0, y];
+        }
+
+        if (furthest.X == 0) furthest.WallLeft = false;
+        else if (furthest.Y == 0) furthest.WallBottom = false;
+        else if (furthest.X == Width - 2) maze[furthest.X + 1, furthest.Y].WallLeft = false;
+        else if (furthest.Y == Height - 2) maze[furthest.X, furthest.Y + 1].WallBottom = false;
     }
 }
