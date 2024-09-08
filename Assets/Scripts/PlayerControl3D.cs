@@ -4,19 +4,30 @@ using UnityEngine;
 
 public class PlayerControl3D : MonoBehaviour
 {
-    private Rigidbody rb;
-    public float speed = 0.5f;
-    private Vector3 moveVector;
+    public float rotationSpeed = 100f;
+    private Vector3 currentRotation;
 
-    void Awake()
+    void Start()
     {
-        rb = GetComponent<Rigidbody>();
+        currentRotation = transform.eulerAngles;
     }
 
     void Update()
     {
-        moveVector.x = Input.GetAxis("Horizontal");
-        moveVector.z = Input.GetAxis("Vertical");
-        rb.MovePosition(rb.position + moveVector * speed * Time.deltaTime);
+        float rotateX = 0f;
+        float rotateZ = 0f;
+
+        if (Input.GetKey(KeyCode.W)) rotateX = 1f;
+        if (Input.GetKey(KeyCode.S)) rotateX = -1f;
+        if (Input.GetKey(KeyCode.A)) rotateZ = 1f;
+        if (Input.GetKey(KeyCode.D)) rotateZ = -1f;
+
+        currentRotation.x += rotateX * rotationSpeed * Time.deltaTime;
+        currentRotation.z += rotateZ * rotationSpeed * Time.deltaTime;
+
+        currentRotation.x = Mathf.Clamp(currentRotation.x, -10f, 10f);
+        currentRotation.z = Mathf.Clamp(currentRotation.z, -10f, 10f);
+
+        transform.eulerAngles = currentRotation;
     }
 }

@@ -8,14 +8,15 @@ public class MazeGeneratorCell
     public int Y;
     public bool WallLeft = true;
     public bool WallBottom = true;
+    public bool Floor = true;
 
     public bool Visited = false;
     public int DistanceFromStart;
 }
 public class MazeGenerator
 {
-    public int Width = 23;
-    public int Height = 15;
+    public int Width = 30;
+    public int Height = 30;
     public MazeGeneratorCell[,] GenerateMaze()
     {
         MazeGeneratorCell[,] maze = new MazeGeneratorCell[Width, Height];
@@ -31,11 +32,13 @@ public class MazeGenerator
         for (int x = 0; x < maze.GetLength(0); x++)
         {
             maze [x, Height - 1].WallLeft = false;
+            maze[x, Height - 1].Floor = false;
         }
 
         for (int y = 0; y < maze.GetLength(1); y++)
         {
             maze [Width - 1, y].WallBottom = false;
+            maze[Width - 1, y].Floor = false;
         }
 
         RemoveWallsWithBactracker(maze);

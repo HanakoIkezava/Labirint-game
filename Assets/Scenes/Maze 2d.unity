@@ -152,6 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CellPrefab: {fileID: 8093731606691724814, guid: c8e71c311f70def4db72c44d69b1013b, type: 3}
+  CellSize: {x: 1, y: 1, z: 0}
 --- !u!4 &432565978
 Transform:
   m_ObjectHideFlags: 0
