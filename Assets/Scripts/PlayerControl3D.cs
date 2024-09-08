@@ -17,10 +17,10 @@ public class PlayerControl3D : MonoBehaviour
         float rotateX = 0f;
         float rotateZ = 0f;
 
-        if (Input.GetKey(KeyCode.W)) rotateX = 1f;
-        if (Input.GetKey(KeyCode.S)) rotateX = -1f;
-        if (Input.GetKey(KeyCode.A)) rotateZ = 1f;
-        if (Input.GetKey(KeyCode.D)) rotateZ = -1f;
+        if (Input.GetAxis("Vertical") > 0) rotateX = 1f;
+        if (Input.GetAxis("Vertical") < 0) rotateX = -1f;
+        if (Input.GetAxis("Horizontal") > 0) rotateZ = -1f;
+        if (Input.GetAxis("Horizontal") < 0) rotateZ = 1f;
 
         currentRotation.x += rotateX * rotationSpeed * Time.deltaTime;
         currentRotation.z += rotateZ * rotationSpeed * Time.deltaTime;
