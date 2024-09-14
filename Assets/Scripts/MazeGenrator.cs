@@ -1,53 +1,44 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-public class MazeGeneratorCell
-{
-    public int X;
-    public int Y;
-    public bool WallLeft = true;
-    public bool WallBottom = true;
-    public bool Floor = true;
+    using System.Collections.Generic;
+    using UnityEngine;
 
-    public bool Visited = false;
-    public int DistanceFromStart;
-}
-public class MazeGenerator
-{
-    public int Width = 16;
-    public int Length = 16;
-    public MazeGeneratorCell[,] GenerateMaze()
+    public class DepthFirstMazeGenerator : IMazeGenerator
     {
-        MazeGeneratorCell[,] maze = new MazeGeneratorCell[Width, Length];
+        public int Width { get; set; } = 16;
+        public int Length { get; set; } = 16;
 
-        for (int x = 0; x < maze.GetLength(0); x++)
+        public MazeGeneratorCell[,] GenerateMaze()
         {
-            for (int y = 0; y < maze.GetLength(1); y++)
+            MazeGeneratorCell[,] maze = new MazeGeneratorCell[Width, Length];
+
+            // Инициализация клеток
+            for (int x = 0; x < Width; x++)
             {
-                maze[x, y] = new MazeGeneratorCell { X = x, Y = y };
+                for (int y = 0; y < Length; y++)
+                {
+                    maze[x, y] = new MazeGeneratorCell { X = x, Y = y };
+                }
             }
+            // Удаление стен на границах лабиринта
+            for (int x = 0; x < Width; x++)
+            {
+                maze[x, Length - 1].WallLeft = false;
+                maze[x, Length - 1].Floor = false;
+            }
+
+            for (int y = 0; y < Length; y++)
+            {
+                maze[Width - 1, y].WallBottom = false;
+                maze[Width - 1, y].Floor = false;
+            }
+
+            // Удаление внутренних стен с помощью алгоритма поиска в глубину
+            RemoveWallsWithBactracker(maze);
+
+            // Установка выхода из лабиринта
+            PlaceMazeExit(maze);
+
+            return maze;
         }
-
-        for (int x = 0; x < maze.GetLength(0); x++)
-        {
-            maze [x, Length - 1].WallLeft = false;
-            maze[x, Length - 1].Floor = false;
-        }
-
-        for (int y = 0; y < maze.GetLength(1); y++)
-        {
-            maze [Width - 1, y].WallBottom = false;
-            maze[Width - 1, y].Floor = false;
-        }
-
-        RemoveWallsWithBactracker(maze);
-
-        PlaceMazeExit(maze);
-
-        return maze;
-    }
-
     private void RemoveWallsWithBactracker(MazeGeneratorCell[,] maze)
     {
         MazeGeneratorCell current = maze[0, 0];
@@ -74,7 +65,7 @@ public class MazeGenerator
                 chosen.Visited = true;
                 stack.Push(chosen);
                 current = chosen;
-                chosen.DistanceFromStart=stack.Count;
+                chosen.DistanceFromStart = stack.Count;
             }
             else
             {
@@ -82,6 +73,7 @@ public class MazeGenerator
             }
         } while (stack.Count > 0);
     }
+
     private void RemoveWall(MazeGeneratorCell a, MazeGeneratorCell b)
     {
         if (a.X == b.X)
@@ -89,15 +81,15 @@ public class MazeGenerator
             if (a.Y > b.Y) a.WallBottom = false;
             else b.WallBottom = false;
         }
-        else 
-        { 
+        else
+        {
             if (a.X > b.X) a.WallLeft = false;
             else b.WallLeft = false;
         }
     }
     private void PlaceMazeExit(MazeGeneratorCell[,] maze)
     {
-        MazeGeneratorCell furthest= maze[0,0];
+        MazeGeneratorCell furthest = maze[0, 0];
         for (int x = 0; x < maze.GetLength(0); x++)
         {
             if (maze[x, Length - 2].DistanceFromStart > furthest.DistanceFromStart) furthest = maze[x, Length - 2];

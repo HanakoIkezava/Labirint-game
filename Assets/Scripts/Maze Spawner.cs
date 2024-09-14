@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MazeSpawner : MonoBehaviour
@@ -11,10 +9,17 @@ public class MazeSpawner : MonoBehaviour
     private const float MazeWidth = 150.0f;
     private const float MazeLength = 150.0f;
 
+    private IObjectSpawner objectSpawner;
+    private IObjectScaler objectScaler;
+    private IMazeGenerator mazeGenerator;
+
     void Start()
     {
-        MazeGenerator generator = new MazeGenerator();
-        MazeGeneratorCell[,] maze = generator.GenerateMaze();
+        objectSpawner = new ObjectSpawner();
+        objectScaler = new ObjectScaler();
+        mazeGenerator = new DepthFirstMazeGenerator(); // Используем конкретную реализацию генератора
+
+        MazeGeneratorCell[,] maze = mazeGenerator.GenerateMaze();
 
         int width = maze.GetLength(0);
         int length = maze.GetLength(1);
@@ -24,61 +29,40 @@ public class MazeSpawner : MonoBehaviour
 
         Vector3 mazeCenterOffset = new Vector3((width * cellWidth) / 2.0f, 0, (length * cellLength) / 2.0f);
 
-        // Создание и позиционирование клеток
-        CreateAndPositionObjects(CellPrefab, (x, y) => new Vector3(x * cellWidth, 0, y * cellLength) - mazeCenterOffset, maze, width, length, cellWidth, cellLength);
+        // Создание клеток
+        CreateAndPositionCells(width, length, maze, cellWidth, cellLength, mazeCenterOffset);
 
-        // Создание и позиционирование игрока
-        CreateAndPositionObject(PlayerPrefab, new Vector3(0, 0, 0) - mazeCenterOffset, cellWidth, cellLength, true);
+        // Создание игрока
+        CreateAndPositionPlayer(mazeCenterOffset, cellWidth, cellLength);
     }
 
-    private void CreateAndPositionObjects(GameObject prefab, System.Func<int, int, Vector3> positionFunc, MazeGeneratorCell[,] maze, int width, int length, float cellWidth, float cellLength)
+    private void CreateAndPositionCells(int width, int length, MazeGeneratorCell[,] maze, float cellWidth, float cellLength, Vector3 mazeCenterOffset)
     {
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < length; y++)
             {
-                Vector3 position = positionFunc(x, y);
+                Vector3 position = new Vector3(x * cellWidth, 0, y * cellLength) - mazeCenterOffset;
+                GameObject cell = objectSpawner.SpawnObject(CellPrefab, position, Quaternion.identity);
+                cell.transform.SetParent(transform, false);
+                objectScaler.ScaleObject(cell, CellSize, cellWidth, cellLength, false);
 
-                GameObject obj = Instantiate(prefab, position, Quaternion.identity);
-                obj.transform.SetParent(transform, false);
-
-                ScaleObject(obj, CellSize, cellWidth, cellLength, false);
-
-                // Настроить специфические для клеток свойства
-                if (prefab == CellPrefab)
+                Cell c = cell.GetComponent<Cell>();
+                if (c != null)
                 {
-                    Cell c = obj.GetComponent<Cell>();
                     c.WallLeft.SetActive(maze[x, y].WallLeft);
                     c.WallBottom.SetActive(maze[x, y].WallBottom);
-                    if (c.Floor != null) c.Floor.SetActive(maze[x, y].Floor);
+                    if (c.Floor != null)
+                        c.Floor.SetActive(maze[x, y].Floor);
                 }
             }
         }
     }
 
-    private void CreateAndPositionObject(GameObject prefab, Vector3 position, float cellWidth, float cellLength, bool scaleUniformly)
+    private void CreateAndPositionPlayer(Vector3 mazeCenterOffset, float cellWidth, float cellLength)
     {
-        GameObject obj = Instantiate(prefab, position, Quaternion.identity);
-        ScaleObject(obj, CellSize, cellWidth, cellLength, scaleUniformly);
-    }
-
-    private void ScaleObject(GameObject obj, Vector3 cellSize, float cellWidth, float cellLength, bool scaleUniformly)
-    {
-        Vector3 originalScale = obj.transform.localScale;
-        float scaleX = cellSize.x != 0 ? cellWidth / cellSize.x : 1;
-        float scaleZ = cellSize.z != 0 ? cellLength / cellSize.z : 1;
-
-        if (scaleUniformly)
-        {
-            // Масштабируем по всем осям, используя минимальный коэффициент из X и Z
-            float scaleUniform = Mathf.Min(scaleX, scaleZ);
-            obj.transform.localScale = new Vector3(originalScale.x * scaleUniform, originalScale.y * scaleUniform, originalScale.z * scaleUniform);
-        }
-        else
-        {
-            // Масштабируем по оси Y, используя меньший из коэффициентов X и Z
-            float scaleY = Mathf.Min(scaleX, scaleZ);
-            obj.transform.localScale = new Vector3(originalScale.x * scaleX, originalScale.y * scaleY, originalScale.z * scaleZ);
-        }
+        Vector3 position = new Vector3(0, 0, 0) - mazeCenterOffset;
+        GameObject player = objectSpawner.SpawnObject(PlayerPrefab, position, Quaternion.identity);
+        objectScaler.ScaleObject(player, CellSize, cellWidth, cellLength, true);
     }
 }
